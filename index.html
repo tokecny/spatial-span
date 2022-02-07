@@ -486,10 +486,84 @@ Saving data...
               }
 
           }
+          //#region Randomized background change
+          function updateBGX(ansState,consCorr){
+            /**
+             * Update prompting background color
+             * @param {Boolean} ansState Answer state of previous trial: True for correct
+             * @param {Int} consCorr Consecutive correct trial
+             **/
+            const rampProb = 0.2; //Ramping rate for switching probability of consecutive correct trial
+            const initProb = 0.2; //Inititial switching probability for correct trial 
+            const falseProb = 1.0;
+
+            var switchingNum = Math.random();
+            var thresholdNum;
+            
+            // If correctly answer the trial question
+            if (ansState === true) {
+              thresholdNum = initProb + (consCorr-1)*rampProb;
+            }
+            else if (ansState === false) {
+              thresholdNum = falseProb;
+            } else {
+              throw "Wrong ansState";
+            }
+
+            //#region log
+            console.log(switchingNum);
+            console.log(thresholdNum);
+            //#endregion
+
+            if (switchingNum < thresholdNum) {
+              bgx = Math.abs(bgx-1);
+              //#region log
+              console.log("bgx flipped");
+              //#endregion
+            }
+          }
+          //#endregion 
+          
+          //#region Update answer states (for visualization)
+          function updateAnsState(ansState,consCorr) {
+            if (typeof(ansState)=='boolean') {
+              if (ansState) {
+                consCorr+= 1;
+                } else {
+                  consCorr = 0;
+                }
+              } else {
+                throw "Wrong answer states"
+            }
+          }
+          //#endregion
+          
+          //#region stacking logic
+          var stackLog = false; //Stacking logic for wrong answer (for repeating trials)
+          function flipStackingLogic() {
+            stackLog = stackLog ? false : true;
+          }
+          //#endregion
+
+          //#region Update the length of the sequences
+          function updateNSeq(ansState,consCorr) {
+            if (typeof(ansState)=="boolean") {
+              if ((ansState) && (consCorr ==2)) {
+                nSeq +=1;
+              } else if (!ansState) { 
+                //Do nothing
+              }
+            } else {
+              throw "Wrong answer states"
+            }
+            
+          }
+          //#endregion
+
 
           function showTrial(){
-             isTest = false;
-            // bgx = Math.abs(bgx-1);
+            // isTest indicator for testing state: true for playable, and false for instruction and others.
+            isTest = false;
             if (curTrial == 0) {
                     bgx = 1;
                 }
@@ -502,27 +576,41 @@ Saving data...
 
              // Shuffle(soundlist);
              var xx = Math.floor(Math.random()*360);
-             const dotid = []; for (var idot =0; idot<numDots;idot++){dotid[idot] = idot}
+
+             //dot sequences constructions
+             const dotid = []; 
+             for (var idot =0; idot<numDots;idot++){
+               dotid[idot] = idot
+             }
 
              var testcolors = [];
-             for (var iSeq=0; iSeq < nSeq; iSeq++){
+
+             //#region create paint color for all 6 circles as array of color
+             //nSeq defines to length of each sequences
+             for (var iSeq=0; iSeq < nSeq; iSeq++) {
                 const temp = Object.values(Object.assign({}, testtemp));
                 if (iSeq ==0){
+                  //Copy instances from dotid to updateArr and then shuffle the id
                   const updateArr = Object.values(Object.assign({}, dotid));
                   shuffle(updateArr)
+
                   var lastpos = [updateArr[0]]
+
                 }
                 else {
                   const updateArr = Object.values(Object.assign({}, dotid)); 
-                  updateArr.splice(lastpos[lastpos.length-1],1)
+                  updateArr.splice(lastpos[lastpos.length-1],1) //delete one element from updateArr at index of lastpos[lastpos.length-1]
                   shuffle(updateArr)
                   lastpos.push(updateArr[0])
                 }
                 temp[lastpos[iSeq]] = xx;
-                //console.log(lastpos)
+                //console.log(lastpos); [1] [1,2] [1,2,5] for 3 iterations
                 tempcolor = paintcolor(temp);
+                //console.log(temp); [99999, 337, 99999, 99999, 99999, 99999]
                 testcolors.push(tempcolor);
+                //console.log(tempcolor); ['#D3D3D3', '#ff5d73', '#D3D3D3', '#D3D3D3', '#D3D3D3', '#D3D3D3']
              }
+             //#endregion
              
              setthistime = [initTime];
              for (iSeq=0;iSeq < nSeq; iSeq++){ 
@@ -531,8 +619,10 @@ Saving data...
              }
 
              
-             for (iSeq = 0; iSeq < nSeq; iSeq++){  
+             for (iSeq = 0; iSeq < nSeq; iSeq++){
+                //call initialT for each cue: inputs color array for painting, time at the end of previous cue(start new cue), and sound
                 initialT(testcolors[iSeq],setthistime[2*iSeq],soundlist[iSeq]);
+
                 RemoveStim(setthistime[(2*iSeq)+1]);
                 if (iSeq == nSeq-1){
                   Cue(setthistime[setthistime.length-1]);
@@ -551,11 +641,7 @@ Saving data...
           // })
 
           function initialT(color,waittime,sound){
-            // Initial
-            if (curTrial == 0) {
-                    bgx = 1;
-                }
-
+            
             setTimeout(function(){
                 // Draw stimuli
                 erase(ctx1);
@@ -567,6 +653,7 @@ Saving data...
                 makeCrosshair();
                 drawObjects(ctx1,objects);
                 var audio = document.getElementById(sound);
+
                 // audio.play();
                 var dT = new Date();
                 STT=dT.getTime();
@@ -592,11 +679,14 @@ Saving data...
 
 
           function Cue(waittime3){
-            // Cue
+            /**
+             * Wait for waittime3 before execute of the sequence in function 
+             * @param {int} waittime3 time in ms to wait before execution 
+             **/
             setTimeout(function(){
                 var dST3 = new Date();
                 //realdelaytime.push(dST3.getTime()-ST2);
-                erase(ctx1);
+                erase(ctx1); //ctx1 is context from myCanvas objecty in html
                 clear();
                 
                 currProbe=0;
