@@ -164,7 +164,6 @@ function drawRectangle(ctx,rectangle){
      ctx.rotate(rectangle.rot*Math.PI/180);
      ctx.translate(-rectangle.x, -rectangle.y);
      ctx.fillRect(rectangle.x-rectangle.width/2,rectangle.y-rectangle.height/2,rectangle.width,rectangle.height);
-
     
      ctx.translate(rectangle.x, rectangle.y);
      ctx.rotate(-rectangle.rot*Math.PI/180);
@@ -270,9 +269,7 @@ function drawObjects(ctx,objects){
         }else if(objects[i].type=='text'){
             drawText(ctx,objects[i])
         }        
-        
     }
-    
 }
 
 function drawGrid(ctx,numCol,numRow){
@@ -342,6 +339,7 @@ $(document).on("mousedown", function(e) {
     waitTime=endTime();
     hasWaited=waitTime>300;
     if(isTest & currProbe>=0 & inBound & hasMoved & hasWaited & iamin){
+        console.log(e)
         currProbe = currProbe+1;
         moveLast=0;
         rt.push(endTime());

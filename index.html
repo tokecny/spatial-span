@@ -313,8 +313,8 @@ Saving data...
           var borders = []; for (var idot =0; idot<numDots;idot++){borders[idot] = circborder}
           const testtemp = []; for (var idot =0; idot<numDots;idot++){testtemp[idot] = 99999}
 
-          var stimdur = 500;
-          var delay = 500;
+          const stimdur = 500;
+          const delay = 500;
 
           var rt=[];
           var moveLast=0;
@@ -324,9 +324,7 @@ Saving data...
           var delayTime=1000;
           var feedbacktime=1000;
 
-
-          var firstBgColor = "#8abaae";
-          var bgcolor = ["#f1959b","#8abaae"];
+          const bgcolor = ["#f1959b","#8abaae"];
           var bgx = Math.round(Math.random());
           var isTest=false;
           var isTrain = false;
@@ -336,8 +334,8 @@ Saving data...
           var realdelaytime =[];
 
           var bgcolorList = []; //Array of background color since start
-
-          // Object positions
+          var curTrial = 0;
+          var stackLog = false; //Stacking logic for wrong answer (for repeating trials)
           
           // Define positions before rotation
           xTemp=[];
@@ -401,43 +399,47 @@ Saving data...
           }
 
           function makeCircles(currColor,bordercolor){
-            // Draw circles
+            /** Create circles with specified color arrays 
+            *@param {string[]} currColor Facecolor of circle
+            *@param {string[]} bordercolor bordercolor of circle
+            **/
 
             for(i=0;i<numDots;i++){
-                makeCircle('dot'+i,xPos[i],yPos[i],objSize+2,false,0,bordercolor[i],bordercolor[i]);
+                makeCircle('dot'+i,xPos[i],yPos[i],objSize+2,false,0,bordercolor[i],bordercolor[i]); //border slightly larger than circle
                 makeCircle('dotIn'+i,xPos[i],yPos[i],objSize,false,0,currColor[i],currColor[i]);
-                // makeCircle('dotIn'+i,xPos[i],yPos[i],objSize,false,0,currColor[i],currColor[i]);
             }
           }
 
-          function makeBackground(bgcolor){
-            // Fill background
-                makeRectangle('bg',centerX,centerX,600,600,false,bgcolor,bgcolor);
-             
+          function makeBackground(bgcolor,width = 600, height = 600){
+            /** Make background for task
+            *@param {string} bgcolor color of background
+            *@param {number} width width of background
+            *@param {number} height height of background
+            **/
+                makeRectangle('bg',centerX,centerX,width,height,false,bgcolor,bgcolor);
           }
 
-          function makeCrosshair(){
-            // Draw rectangles
+          function makeCrosshair(length = 40, width = 6){
+            /** Create crosshair for fixation **/
             for(i=0;i<numDots;i++){
-                makeRectangle('cross1',centerX,centerX,6,40,false,'#000000','#000000');
-                makeRectangle('cross2',centerX,centerY,40,6,false,'#000000','#000000');
+                makeRectangle('cross1',centerX,centerX,width,length,false,'#000000','#000000');
+                makeRectangle('cross2',centerX,centerY,length,width,false,'#000000','#000000');
             }
           }
 
-          var st=null;
+          var st=null; //starting time
           function startTime(){
+            /** put value to st **/
               var d = new Date();
               st=d.getTime();
           }
 
           function endTime(){
-              
+              /** Calculate time differences from starting point of test **/
               var d = new Date();
               timeDif=d.getTime()-st;
               return timeDif;
           }
-
-          var curTrial = 0;
           
           function trialIsOver() {
               
@@ -471,7 +473,14 @@ Saving data...
               // document.getElementById('targAng').value=JSON.stringify(targAng);
               // document.getElementById('rt').value=JSON.stringify(rt);
 
-              curTrial = curTrial+1 ; 
+              curTrial = curTrial+1 ;
+              //#region update trial parameter
+              /**
+               * updateAnsState
+               * updateBGX
+               * updateNSeq
+               **/
+              //#endregion
 
               if (curTrial >= nTrials){
                   Done();
@@ -539,7 +548,6 @@ Saving data...
           //#endregion
           
           //#region stacking logic
-          var stackLog = false; //Stacking logic for wrong answer (for repeating trials)
           function flipStackingLogic() {
             stackLog = stackLog ? false : true;
           }
